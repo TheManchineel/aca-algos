@@ -1,5 +1,9 @@
+import re
 from dataclasses import dataclass
 from enum import Enum
+
+from common.misc import from_yn
+
 
 class MesiStateType(Enum):
     EXCLUSIVE = 0
@@ -16,10 +20,46 @@ class MesiCacheState:
     block_id: int
     state: MesiStateType
 
+    def __str__(self):
+        return f"{self.state.name.capitalize()}({self.block_id})"
+
+    def __repr__(self):
+        return self.__str__()
+
 @dataclass(frozen=True)
 class MesiSystemState:
     cpu_cache_states: tuple[MesiCacheState, ...]
     memory_state: tuple[bool, ...]
+
+    @staticmethod
+    def from_row(
+        row: list[str], cpu_cache_count: int, mem_block_count: int
+    ):
+        cpu_states = []
+        memory_states = []
+        for i in range(cpu_cache_count):
+            if res := re.search(r"(?<=^Modified\()\d+(?=\))", row[i]):
+                cpu_states.append(
+                    MesiCacheState(int(res.group()), MesiStateType.MODIFIED)
+                )
+            elif res := re.search(r"(?<=^Exclusive\()\d+(?=\))", row[i]):
+                cpu_states.append(
+                    MesiCacheState(int(res.group()), MesiStateType.EXCLUSIVE)
+                )
+            elif res := re.search(r"(?<=^Shared\()\d+(?=\))", row[i]):
+                cpu_states.append(
+                    MesiCacheState(int(res.group()), MesiStateType.SHARED)
+                )
+            elif re.search(r"Invalid", row[i]):
+                cpu_states.append(MesiCacheState(-1, MesiStateType.INVALID))
+            else:
+                print(row[i])
+                raise ValueError("Invalid input")
+
+        for i in range(cpu_cache_count, cpu_cache_count + mem_block_count):
+            memory_states.append(from_yn(row[i]))
+
+        return MesiSystemState(tuple(cpu_states), tuple(memory_states))
 
 
 def _evict_local(
@@ -119,3 +159,15 @@ class MesiOperation:
         return (
             f"P{self.cpu_id}: {self.operation_type.name.lower()} block {self.block_id}"
         )
+
+    def __repr__(self):
+        return self.__str__()
+
+    @staticmethod
+    def from_repr(text: str):
+        res = re.search(r"P(\d+): (\w+) block (\d+)", text)
+        if not res:
+            raise ValueError("Invalid input")
+
+        cpu_id, operation_type, block_id = res.groups()
+        return MesiOperation(int(cpu_id), MesiOperationType[operation_type.upper()], int(block_id))
