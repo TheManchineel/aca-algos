@@ -1,0 +1,8 @@
+Cycle,AfterOperation,P0 CacheState,P1 CacheState,MemUpToDate 0,MemUpToDate 1
+1,P1: read block 0,Exclusive(1),Exclusive(0),Yes,Yes
+2,?,Modified(1),Exclusive(0),Yes,No
+3,?,Modified(1),Exclusive(0),Yes,No
+4,?,Modified(0),Invalid,No,Yes
+5,?,Modified(0),Exclusive(1),No,Yes
+6,?,Modified(0),Modified(1),No,No
+7,?,Shared(0),Shared(0),Yes,Yes
