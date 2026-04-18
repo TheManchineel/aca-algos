@@ -1,5 +1,5 @@
 from common.file_input import open_file, read_csv
-from common.mesi import *
+from common.mesi_algo import *
 from common.misc import *
 import re
 
