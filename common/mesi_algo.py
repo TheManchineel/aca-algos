@@ -142,9 +142,12 @@ class MesiOperation:
             case MesiOperationType.READ:
                 if current_cpu_cache_state.block_id != self.block_id:
                     _evict_local(self.cpu_id, prev_cpu_cache_states, prev_memory_state)
-                _access_read(
-                    self.block_id, self.cpu_id, prev_cpu_cache_states, prev_memory_state
-                )
+                    _access_read(
+                        self.block_id, self.cpu_id, prev_cpu_cache_states, prev_memory_state
+                    )
+                else:
+                    # cache hit, do nothing
+                    pass
 
             case MesiOperationType.WRITE:
                 if current_cpu_cache_state.block_id != self.block_id:
